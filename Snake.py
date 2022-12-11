@@ -125,50 +125,51 @@ class Food:
     pygame.draw.circle(screen, (255, 0, 0), self.position, BLOCK_SIZE // 2)
 
 
-# Create the snake and food objects
-snake = Snake(INITIAL_POSITION, INITIAL_VELOCITY)
-food = Food(snake)
+if __name__ == "__main__":
+  # Create the snake and food objects
+  snake = Snake(INITIAL_POSITION, INITIAL_VELOCITY)
+  food = Food(snake)
 
-# Create the game clock
-clock = pygame.time.Clock()
+  # Create the game clock
+  clock = pygame.time.Clock()
 
-# Play the game for a specified number of time steps
-for t in range(MAX_TIME_STEPS):
-  # Process the events in the game
-  for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      # End the game if the player closes the window
-      print("Game over! You scored {} points.".format(len(snake.body)))
-      pygame.quit()
-      quit()
+  # Play the game for a specified number of time steps
+  for t in range(MAX_TIME_STEPS):
+    # Process the events in the game
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        # End the game if the player closes the window
+        print("Game over! You scored {} points.".format(len(snake.body)))
+        pygame.quit()
+        quit()
 
-  # Update the snake's direction based on the user input
-  if event.type == pygame.KEYDOWN:
-    if event.key == pygame.K_LEFT:
-      snake.change_direction((-1, 0))
-    elif event.key == pygame.K_RIGHT:
-      snake.change_direction((1, 0))
-    elif event.key == pygame.K_UP:
-      snake.change_direction((0, -1))
-    elif event.key == pygame.K_DOWN:
-      snake.change_direction((0, 1))
+    # Update the snake's direction based on the user input
+    if event.type == pygame.KEYDOWN:
+      if event.key == pygame.K_LEFT:
+        snake.change_direction((-1, 0))
+      elif event.key == pygame.K_RIGHT:
+        snake.change_direction((1, 0))
+      elif event.key == pygame.K_UP:
+        snake.change_direction((0, -1))
+      elif event.key == pygame.K_DOWN:
+        snake.change_direction((0, 1))
 
-  # Update the snake and food objects
-  snake.move()
-  if snake.position == food.position:
-      # Create a new food object at a random position
-      food = Food(snake)
-      snake.body.append(snake.position)
+    # Update the snake and food objects
+    snake.move()
+    if snake.position == food.position:
+        # Create a new food object at a random position
+        food = Food(snake)
+        snake.body.append(snake.position)
 
-  # Clear the screen
-  screen.fill(BLACK)
+    # Clear the screen
+    screen.fill(BLACK)
 
-  # Draw the snake and food on the screen
-  snake.draw(screen)
-  food.draw(screen)
+    # Draw the snake and food on the screen
+    snake.draw(screen)
+    food.draw(screen)
 
-  # Update the game screen
-  pygame.display.update()
+    # Update the game screen
+    pygame.display.update()
 
-  # Limit the frame rate to 30 FPS
-  clock.tick(15)
+    # Limit the frame rate to 30 FPS
+    clock.tick(15)
