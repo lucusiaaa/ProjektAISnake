@@ -6,8 +6,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # Define the screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 400
 
 # Define the snake block size
 BLOCK_SIZE = 20
@@ -66,18 +66,19 @@ class Snake:
     self.position = (round(self.position[0] / BLOCK_SIZE) * BLOCK_SIZE, round(self.position[1] / BLOCK_SIZE) * BLOCK_SIZE)
 
     # Check if the new position is within the bounds of the game screen
-    if self.position[0] < 0 or self.position[0] >= SCREEN_WIDTH or self.position[1] < 0 or self.position[1] >= SCREEN_HEIGHT:
-      # End the game if the snake moves off the screen
-      print("Game over! You scored {} points.".format(len(self.body)))
-      pygame.quit()
-      quit()
+    if __name__ == "__main__":
+      if self.position[0] < 0 or self.position[0] >= SCREEN_WIDTH or self.position[1] < 0 or self.position[1] >= SCREEN_HEIGHT:
+        # End the game if the snake moves off the screen
+        print("Game over! You scored {} points.".format(len(self.body)))
+        pygame.quit()
+        quit()
 
-    # Check if the new position is on top of the snake's body
-    if self.position in self.body[1:]:
-      # End the game if the snake collides with itself
-      print("Game over! You scored {} points.".format(len(self.body)))
-      pygame.quit()
-      quit()
+      # Check if the new position is on top of the snake's body
+      if self.position in self.body[1:]:
+        # End the game if the snake collides with itself
+        print("Game over! You scored {} points.".format(len(self.body)))
+        pygame.quit()
+        quit()
 
     # Add the new position to the front of the snake's body
     self.body.insert(0, self.position)
