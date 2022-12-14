@@ -18,10 +18,10 @@ ACTIONS = {
 }
 
 REWARDS = {
-    "food": 100,
-    "hit_wall": -10,
-    "hit_body": -10,
-    "normal-move": -1
+    "food": 1,
+    "hit_wall": -1,
+    "hit_body": -1,
+    "normal-move": 0
 }
 
 EPISODES_TO_SHOW = [1000, 10000, 100000, 1000000, 10000000]
@@ -118,18 +118,44 @@ class SnakeGameState:
             snake_dir="0010"
         if self.snake_dir == (0,1):
             snake_dir="0001"
-        # food found near head "left,up,right,down"
-        food_at = "0000"
-        if self.snake_pos[0] == self.food_pos[0]:
-            if self.snake_pos[1] == self.food_pos[1]+BLOCK_SIZE:
-                food_at = "0001"
-            elif self.snake_pos[1] == self.food_pos[1]-BLOCK_SIZE:
-                food_at = "0100"
-        elif self.snake_pos[1] == self.food_pos[1]:
-            if self.snake_pos[0] == self.food_pos[0]+BLOCK_SIZE:
-                food_at = "0010"
-            elif self.snake_pos[0] == self.food_pos[0]-BLOCK_SIZE:
-                food_at = "1000"
+        # food position "left,up,right,down"
+        food_at_left = "0"
+        food_at_up = "0"
+        food_at_right = "0"
+        food_at_down = "0"
+
+        if self.food_pos[0]<=self.snake_pos[0]:
+            food_at_left="1"
+        if self.food_pos[0]>=self.snake_pos[0]:
+            food_at_right="1"
+        if self.food_pos[1]<=self.snake_pos[1]:
+            food_at_up="1"
+        if self.food_pos[1]>=self.snake_pos[1]:
+            food_at_down="1"
+
+        # if self.snake_pos[0] == self.food_pos[0]:
+        #     if self.snake_pos[1] > self.food_pos[1]:
+        #         food_at = "0001"
+        #     elif self.snake_pos[1] < self.food_pos[1]:
+        #         food_at = "0100"
+        # elif self.snake_pos[1] == self.food_pos[1]:
+        #     if self.snake_pos[0] < self.food_pos[0]:
+        #         food_at = "0010"
+        #     elif self.snake_pos[0] > self.food_pos[0]:
+        #         food_at = "1000"
+
+        # if self.snake_pos[0] == self.food_pos[0]:
+        #     if self.snake_pos[1] == self.food_pos[1]+BLOCK_SIZE:
+        #         food_at = "0001"
+        #     elif self.snake_pos[1] == self.food_pos[1]-BLOCK_SIZE:
+        #         food_at = "0100"
+        # elif self.snake_pos[1] == self.food_pos[1]:
+        #     if self.snake_pos[0] == self.food_pos[0]+BLOCK_SIZE:
+        #         food_at = "0010"
+        #     elif self.snake_pos[0] == self.food_pos[0]-BLOCK_SIZE:
+        #         food_at = "1000"
+
+        food_at=food_at_left+food_at_up+food_at_right+food_at_down
         return int((danger_at+snake_dir+food_at),2)
 
 class DoubleQLearningSnake(Snake):
@@ -203,7 +229,8 @@ class SnakeGame:
 
                 snake.update(gameState,snake.get_action(gameState),gameState.get_reward(),new_state)
 
-                if episode in EPISODES_TO_SHOW:
+                # if episode in EPISODES_TO_SHOW:
+                if True:
                     # Clear the screen
                     screen.fill(BLACK)
                     # Draw the snake and food on the screen
@@ -221,10 +248,11 @@ class SnakeGame:
                     # Update the game screen
                     pygame.display.update()
                     # Limit the frame rate to 15 FPS
-                    clock.tick(15)
-
-                    screen.fill(BLACK)
-                    pygame.display.update()
+                    if episode in EPISODES_TO_SHOW:
+                        clock.tick(15)
+                    #
+                    # screen.fill(BLACK)
+                    # pygame.display.update()
                 if new_state.is_terminal():
                     break
 
