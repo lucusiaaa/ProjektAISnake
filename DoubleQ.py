@@ -263,7 +263,7 @@ class SnakeGame:
                 if snake.position == food.position:
                     # Create a new food object at a random position
                     food = Food(snake)
-                    snake.body.append(snake.position)
+                    snake.body.append(snake.body[len(snake.body)-1])
 
                 snake.update(gameState,snake.get_action(gameState), new_state.get_reward(), new_state)
 
