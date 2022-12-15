@@ -208,7 +208,7 @@ class DoubleQLearningSnake(Snake):
     def update(self, state: SnakeGameState, action, reward, next_state):
         # Choose the best action to take in the next state according to the two Q-tables
 
-        if random.choice([True,False]):
+        if random.choice([True, False]):
             next_action = self.get_greedy_action(True, next_state)
             # Update the Q-value in the first Q-table using the Q-value in the second Q-table
             self.q1_table[state.state_representation()][action] = self.q1_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q2_table[next_state.state_representation()][next_action] - self.q1_table[state.state_representation()][action])
@@ -257,7 +257,7 @@ class SnakeGame:
                 new_state = SnakeGameState(snake,food)
                 if new_state.is_terminal():
                     Graph.red.append(len(snake.body) - 1)
-                    snake.update(gameState, snake.get_action(gameState), gameState.get_reward(), new_state)
+                    snake.update(gameState, snake.get_action(gameState), new_state.get_reward(), new_state)
                     break
 
                 if snake.position == food.position:
@@ -265,7 +265,9 @@ class SnakeGame:
                     food = Food(snake)
                     snake.body.append(snake.position)
 
-                snake.update(gameState,snake.get_action(gameState), gameState.get_reward(),new_state)
+                snake.update(gameState,snake.get_action(gameState), new_state.get_reward(), new_state)
+
+                gameState = new_state
 
                 if episode in EPISODES_TO_SHOW:
                     screen.fill(BLACK)
