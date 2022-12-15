@@ -204,6 +204,7 @@ class SnakeGame:
 
                 new_state = SnakeGameState(snake,food)
                 if new_state.is_terminal():
+                    snake.update(gameState, snake.get_action(gameState), gameState.get_reward(), new_state)
                     break
                 if snake.position == food.position:
                     # Create a new food object at a random position
