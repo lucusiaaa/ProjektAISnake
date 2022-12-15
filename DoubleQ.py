@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 import pylab
+import math
 
 
 class Graph:
@@ -40,6 +41,8 @@ NUM_EPISODES = 100000000000
 # Define the learning rate (alpha) and discount factor (gamma)
 ALPHA = 0.5
 GAMMA = 0.9
+EPSILON = 0.1
+ACTION_NUM = 4
 
 # Define the possible actions
 # ACTIONS = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -177,17 +180,21 @@ class DoubleQLearningSnake(Snake):
         self.q1_table = [[0 for action in ACTIONS] for state in range(pow(2,11))]
         self.q2_table = [[0 for action in ACTIONS] for state in range(pow(2,11))]
 
-
-    #TODO: this should be epsilon-greedy
+    #epsilon-greedy action
     def get_action(self, state: SnakeGameState):
-        # Choose the best action to take in the given state according to the Q-tables
-        best_q1 = max(self.q1_table[state.state_representation()][action] for action in ACTIONS)
-        best_q2 = max(self.q2_table[state.state_representation()][action] for action in ACTIONS)
-        best_q = max(best_q1, best_q2)
-        # Randomly choose one of the actions with the highest Q-value
-        best_actions = [action for action in ACTIONS if
-                        self.q1_table[state.state_representation()][action] == best_q or self.q2_table[state.state_representation()][action] == best_q]
-        return random.choice(best_actions)
+        num = random.uniform(0,1)
+        if num > EPSILON:
+            # Choose the best action to take in the given state according to the Q-tables
+            best_q1 = max(self.q1_table[state.state_representation()][action] for action in ACTIONS)
+            best_q2 = max(self.q2_table[state.state_representation()][action] for action in ACTIONS)
+            best_q = max(best_q1, best_q2)
+            # Randomly choose one of the actions with the highest Q-value
+            best_actions = [action for action in ACTIONS if
+                            self.q1_table[state.state_representation()][action] == best_q or
+                            self.q2_table[state.state_representation()][action] == best_q]
+            return random.choice(best_actions)
+        else:
+            return math.floor((num*1000)%ACTION_NUM)
 
     def get_greedy_action(self, bool, state: SnakeGameState):
         # Choose the best action to take in the given state according to the Q-tables
