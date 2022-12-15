@@ -1,6 +1,38 @@
 import random
 
 from Snake import *
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.backends.backend_agg as agg
+import pylab
+
+
+class Graph:
+    red = []
+
+
+def drawGraph():
+    fig = pylab.figure(figsize=[4, 4],  # Inches
+                       dpi=100)  # 100 dots per inch
+    fig.patch.set_alpha(0.1)  # make the surrounding of the plot 90% transparent to show what it does
+
+    ax = fig.gca()
+    ax.set_prop_cycle(color=['red'])
+    ax.plot(Graph.red)
+
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    renderer = canvas.get_renderer()
+    raw_data = renderer.buffer_rgba()
+
+    pygame.init()
+    screen = pygame.display.get_surface()
+
+    size = canvas.get_width_height()
+    surf = pygame.image.frombuffer(raw_data, size, "RGBA")
+
+    screen.blit(surf, (0, 0))  # x, y position on screen
+    matplotlib.pyplot.close(fig)
 
 # Define the number of episodes to run
 NUM_EPISODES = 100000000000
@@ -21,8 +53,8 @@ ACTIONS = {
 
 REWARDS = {
     "food": 1,
-    "hit_wall": -1,
-    "hit_body": -1,
+    "hit_wall": -100,
+    "hit_body": -100,
     "normal-move": 0
 }
 
@@ -158,6 +190,7 @@ class DoubleQLearningSnake(Snake):
     def update(self, state: SnakeGameState, action, reward, next_state: SnakeGameState):
         # Choose the best action to take in the next state according to the two Q-tables
         next_action = self.get_action(next_state)
+
         if random.choice([True,False]):
             # Update the Q-value in the first Q-table using the Q-value in the second Q-table
             self.q1_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q1_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q2_table[next_state.state_representation()][next_action])
@@ -206,6 +239,7 @@ class SnakeGame:
                 if new_state.is_terminal():
                     snake.update(gameState, snake.get_action(gameState), gameState.get_reward(), new_state)
                     break
+
                 if snake.position == food.position:
                     # Create a new food object at a random position
                     food = Food(snake)
@@ -214,31 +248,38 @@ class SnakeGame:
 
                 snake.update(gameState,snake.get_action(gameState),gameState.get_reward(),new_state)
 
-                # if episode in EPISODES_TO_SHOW:
-                if True:
-                    # Clear the screen
-                    screen.fill(BLACK)
-                    # Draw the snake and food on the screen
-                    snake.draw(screen)
-                    food.draw(screen)
+                Graph.red.append(len(snake.body) - 1)
 
-                    text = font.render(f"Episode: {episode}", True, (0, 255, 0))
-                    text2 = font.render(f"Score: {len(snake.body)-1}", True, (0, 255, 0))
-                    textRect = text.get_rect()
-                    textRect2 = text2.get_rect()
-                    textRect.topleft = (0, 0)
-                    textRect2.topleft = textRect.bottomleft
-                    screen.blit(text,textRect)
-                    screen.blit(text2,textRect2)
-                    # Update the game screen
-                    pygame.display.update()
-                    # Limit the frame rate to 15 FPS
-                    # if episode in EPISODES_TO_SHOW:
-                    if episode >= 1000:
-                        clock.tick(15)
-                    #
-                    # screen.fill(BLACK)
-                    # pygame.display.update()
+                if episode in EPISODES_TO_SHOW:
+                    screen.fill(BLACK)
+                    drawGraph()
+                    pygame.display.flip()
+
+                # if episode in EPISODES_TO_SHOW:
+                # if True:
+                #     # Clear the screen
+                #     screen.fill(BLACK)
+                #     # Draw the snake and food on the screen
+                #     snake.draw(screen)
+                #     food.draw(screen)
+                #
+                #     text = font.render(f"Episode: {episode}", True, (0, 255, 0))
+                #     text2 = font.render(f"Score: {len(snake.body)-1}", True, (0, 255, 0))
+                #     textRect = text.get_rect()
+                #     textRect2 = text2.get_rect()
+                #     textRect.topleft = (0, 0)
+                #     textRect2.topleft = textRect.bottomleft
+                #     screen.blit(text,textRect)
+                #     screen.blit(text2,textRect2)
+                #     # Update the game screen
+                #     pygame.display.update()
+                #     # Limit the frame rate to 15 FPS
+                #     # if episode in EPISODES_TO_SHOW:
+                #     if episode >= 1000:
+                #         clock.tick(15)
+                #     #
+                #     # screen.fill(BLACK)
+                #     # pygame.display.update()
 
 snakeGame = SnakeGame()
 snakeGame.run()
