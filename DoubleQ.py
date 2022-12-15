@@ -1,6 +1,38 @@
 import random
 
 from Snake import *
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.backends.backend_agg as agg
+import pylab
+
+
+class Graph:
+    red = []
+
+
+def drawGraph():
+    fig = pylab.figure(figsize=[7, 7],  # Inches
+                       dpi=100)  # 100 dots per inch
+    #fig.patch.set_alpha(0.1)  # make the surrounding of the plot 90% transparent to show what it does
+
+    ax = fig.gca()
+    ax.set_prop_cycle(color=['red'])
+    ax.plot(Graph.red)
+
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    renderer = canvas.get_renderer()
+    raw_data = renderer.buffer_rgba()
+
+    pygame.init()
+    screen = pygame.display.get_surface()
+
+    size = canvas.get_width_height()
+    surf = pygame.image.frombuffer(raw_data, size, "RGBA")
+
+    screen.blit(surf, (0, 0))  # x, y position on screen
+    matplotlib.pyplot.close(fig)
 
 # Define the number of episodes to run
 NUM_EPISODES = 100000000000
@@ -20,13 +52,13 @@ ACTIONS = {
 }
 
 REWARDS = {
-    "food": 1,
-    "hit_wall": -1,
-    "hit_body": -1,
+    "food": 2,
+    "hit_wall": -5,
+    "hit_body": -3,
     "normal-move": 0
 }
 
-EPISODES_TO_SHOW = [1000, 10000, 100000, 1000000, 10000000]
+EPISODES_TO_SHOW = [1000, 10000, 30000, 50000, 70000, 100000, 500000, 1000000, 2000000, 5000000, 7500000, 10000000]
 
 def get_action_key_from_action(action):
     return list(ACTIONS.keys())[list(ACTIONS.values()).index(action)]
@@ -65,10 +97,10 @@ class SnakeGameState:
         # snake going left
         if self.snake_dir == (-1,0):
             # look for danger on his left (below)
-            if self.snake_pos[1] + BLOCK_SIZE >= SCREEN_HEIGHT or (self.snake_pos[0],self.snake_pos[1] + BLOCK_SIZE) in self.obstacles:
+            if self.snake_pos[1] + BLOCK_SIZE >= SCREEN_HEIGHT or (self.snake_pos[0], self.snake_pos[1] + BLOCK_SIZE) in self.obstacles:
                 danger_at_left = "1"
             # look for danger ahead (on the left)
-            if self.snake_pos[0] - BLOCK_SIZE <= 0 or (self.snake_pos[0] - BLOCK_SIZE,self.snake_pos[1]) in self.obstacles:
+            if self.snake_pos[0] - BLOCK_SIZE <= 0 or (self.snake_pos[0] - BLOCK_SIZE, self.snake_pos[1]) in self.obstacles:
                 danger_at_front = "1"
             # look for danger on his right (above)
             if self.snake_pos[1] - BLOCK_SIZE <= 0 or (self.snake_pos[0],self.snake_pos[1] - BLOCK_SIZE) in self.obstacles:
@@ -145,6 +177,8 @@ class DoubleQLearningSnake(Snake):
         self.q1_table = [[0 for action in ACTIONS] for state in range(pow(2,11))]
         self.q2_table = [[0 for action in ACTIONS] for state in range(pow(2,11))]
 
+
+    #TODO: this should be epsilon-greedy
     def get_action(self, state: SnakeGameState):
         # Choose the best action to take in the given state according to the Q-tables
         best_q1 = max(self.q1_table[state.state_representation()][action] for action in ACTIONS)
@@ -155,15 +189,33 @@ class DoubleQLearningSnake(Snake):
                         self.q1_table[state.state_representation()][action] == best_q or self.q2_table[state.state_representation()][action] == best_q]
         return random.choice(best_actions)
 
-    def update(self, state: SnakeGameState, action, reward, next_state: SnakeGameState):
-        # Choose the best action to take in the next state according to the two Q-tables
-        next_action = self.get_action(next_state)
-        if random.choice([True,False]):
-            # Update the Q-value in the first Q-table using the Q-value in the second Q-table
-            self.q1_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q1_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q2_table[next_state.state_representation()][next_action])
+    def get_greedy_action(self, bool, state: SnakeGameState):
+        # Choose the best action to take in the given state according to the Q-tables
+        if(bool):
+            best_q = max(self.q1_table[state.state_representation()][action] for action in ACTIONS)
+
+            best_actions = [action for action in ACTIONS if
+                            self.q1_table[state.state_representation()][action] == best_q]
+
         else:
+            best_q = max(self.q2_table[state.state_representation()][action] for action in ACTIONS)
+
+            best_actions = [action for action in ACTIONS if
+                            self.q2_table[state.state_representation()][action] == best_q]
+
+        return random.choice(best_actions)
+
+    def update(self, state: SnakeGameState, action, reward, next_state):
+        # Choose the best action to take in the next state according to the two Q-tables
+
+        if random.choice([True,False]):
+            next_action = self.get_greedy_action(True, next_state)
+            # Update the Q-value in the first Q-table using the Q-value in the second Q-table
+            self.q1_table[state.state_representation()][action] = self.q1_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q2_table[next_state.state_representation()][next_action] - self.q1_table[state.state_representation()][action])
+        else:
+            next_action = self.get_greedy_action(False, next_state)
             # Update the Q-value in the second Q-table using the Q-value in the first Q-table
-            self.q2_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q2_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q1_table[next_state.state_representation()][next_action])
+            self.q2_table[state.state_representation()][action] = self.q2_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q1_table[next_state.state_representation()][next_action] - self.q2_table[state.state_representation()][action])
 
     def reset_snake(self):
         self.position = INITIAL_POSITION
@@ -204,41 +256,47 @@ class SnakeGame:
 
                 new_state = SnakeGameState(snake,food)
                 if new_state.is_terminal():
+                    Graph.red.append(len(snake.body) - 1)
                     snake.update(gameState, snake.get_action(gameState), gameState.get_reward(), new_state)
                     break
+
                 if snake.position == food.position:
                     # Create a new food object at a random position
                     food = Food(snake)
                     snake.body.append(snake.position)
-                    new_state = SnakeGameState(snake,food)
 
-                snake.update(gameState,snake.get_action(gameState),gameState.get_reward(),new_state)
+                snake.update(gameState,snake.get_action(gameState), gameState.get_reward(),new_state)
+
+                if episode in EPISODES_TO_SHOW:
+                    screen.fill(BLACK)
+                    drawGraph()
+                    pygame.display.flip()
 
                 # if episode in EPISODES_TO_SHOW:
-                if True:
-                    # Clear the screen
-                    screen.fill(BLACK)
-                    # Draw the snake and food on the screen
-                    snake.draw(screen)
-                    food.draw(screen)
-
-                    text = font.render(f"Episode: {episode}", True, (0, 255, 0))
-                    text2 = font.render(f"Score: {len(snake.body)-1}", True, (0, 255, 0))
-                    textRect = text.get_rect()
-                    textRect2 = text2.get_rect()
-                    textRect.topleft = (0, 0)
-                    textRect2.topleft = textRect.bottomleft
-                    screen.blit(text,textRect)
-                    screen.blit(text2,textRect2)
-                    # Update the game screen
-                    pygame.display.update()
-                    # Limit the frame rate to 15 FPS
-                    # if episode in EPISODES_TO_SHOW:
-                    if episode >= 1000:
-                        clock.tick(15)
-                    #
-                    # screen.fill(BLACK)
-                    # pygame.display.update()
+                # if True:
+                #     # Clear the screen
+                #     screen.fill(BLACK)
+                #     # Draw the snake and food on the screen
+                #     snake.draw(screen)
+                #     food.draw(screen)
+                #
+                #     text = font.render(f"Episode: {episode}", True, (0, 255, 0))
+                #     text2 = font.render(f"Score: {len(snake.body)-1}", True, (0, 255, 0))
+                #     textRect = text.get_rect()
+                #     textRect2 = text2.get_rect()
+                #     textRect.topleft = (0, 0)
+                #     textRect2.topleft = textRect.bottomleft
+                #     screen.blit(text,textRect)
+                #     screen.blit(text2,textRect2)
+                #     # Update the game screen
+                #     pygame.display.update()
+                #     # Limit the frame rate to 15 FPS
+                #     # if episode in EPISODES_TO_SHOW:
+                #     if episode >= 1000:
+                #         clock.tick(15)
+                #     #
+                #     # screen.fill(BLACK)
+                #     # pygame.display.update()
 
 snakeGame = SnakeGame()
 snakeGame.run()

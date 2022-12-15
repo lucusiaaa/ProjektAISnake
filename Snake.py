@@ -23,7 +23,7 @@ MAX_TIME_STEPS = 10000
 pygame.init()
 
 # Create the game screen
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((700, 700))
 
 # Set the title and background color of the game screen
 pygame.display.set_caption("Snake")
