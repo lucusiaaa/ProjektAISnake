@@ -1,3 +1,5 @@
+import random
+
 from Snake import *
 
 # Define the number of episodes to run
@@ -132,29 +134,6 @@ class SnakeGameState:
             food_at_up="1"
         if self.food_pos[1]>=self.snake_pos[1]:
             food_at_down="1"
-
-        # if self.snake_pos[0] == self.food_pos[0]:
-        #     if self.snake_pos[1] > self.food_pos[1]:
-        #         food_at = "0001"
-        #     elif self.snake_pos[1] < self.food_pos[1]:
-        #         food_at = "0100"
-        # elif self.snake_pos[1] == self.food_pos[1]:
-        #     if self.snake_pos[0] < self.food_pos[0]:
-        #         food_at = "0010"
-        #     elif self.snake_pos[0] > self.food_pos[0]:
-        #         food_at = "1000"
-
-        # if self.snake_pos[0] == self.food_pos[0]:
-        #     if self.snake_pos[1] == self.food_pos[1]+BLOCK_SIZE:
-        #         food_at = "0001"
-        #     elif self.snake_pos[1] == self.food_pos[1]-BLOCK_SIZE:
-        #         food_at = "0100"
-        # elif self.snake_pos[1] == self.food_pos[1]:
-        #     if self.snake_pos[0] == self.food_pos[0]+BLOCK_SIZE:
-        #         food_at = "0010"
-        #     elif self.snake_pos[0] == self.food_pos[0]-BLOCK_SIZE:
-        #         food_at = "1000"
-
         food_at=food_at_left+food_at_up+food_at_right+food_at_down
         return int((danger_at+snake_dir+food_at),2)
 
@@ -179,10 +158,12 @@ class DoubleQLearningSnake(Snake):
     def update(self, state: SnakeGameState, action, reward, next_state: SnakeGameState):
         # Choose the best action to take in the next state according to the two Q-tables
         next_action = self.get_action(next_state)
-        # Update the Q-value in the first Q-table using the Q-value in the second Q-table
-        self.q1_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q1_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q2_table[next_state.state_representation()][next_action])
-        # Update the Q-value in the second Q-table using the Q-value in the first Q-table
-        self.q2_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q2_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q1_table[next_state.state_representation()][next_action])
+        if random.choice([True,False]):
+            # Update the Q-value in the first Q-table using the Q-value in the second Q-table
+            self.q1_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q1_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q2_table[next_state.state_representation()][next_action])
+        else:
+            # Update the Q-value in the second Q-table using the Q-value in the first Q-table
+            self.q2_table[state.state_representation()][action] = (1 - self.learning_rate) * self.q2_table[state.state_representation()][action] + self.learning_rate * (reward + self.discount_factor * self.q1_table[next_state.state_representation()][next_action])
 
     def reset_snake(self):
         self.position = INITIAL_POSITION
@@ -220,12 +201,15 @@ class SnakeGame:
 
                 # Update the snake and food objects
                 snake.move()
+
+                new_state = SnakeGameState(snake,food)
+                if new_state.is_terminal():
+                    break
                 if snake.position == food.position:
                     # Create a new food object at a random position
                     food = Food(snake)
                     snake.body.append(snake.position)
-
-                new_state = SnakeGameState(snake,food)
+                    new_state = SnakeGameState(snake,food)
 
                 snake.update(gameState,snake.get_action(gameState),gameState.get_reward(),new_state)
 
@@ -248,13 +232,12 @@ class SnakeGame:
                     # Update the game screen
                     pygame.display.update()
                     # Limit the frame rate to 15 FPS
-                    if episode in EPISODES_TO_SHOW:
+                    # if episode in EPISODES_TO_SHOW:
+                    if episode >= 1000:
                         clock.tick(15)
                     #
                     # screen.fill(BLACK)
                     # pygame.display.update()
-                if new_state.is_terminal():
-                    break
 
 snakeGame = SnakeGame()
 snakeGame.run()
