@@ -39,7 +39,7 @@ def drawGraph():
 NUM_EPISODES = 100000000000
 
 # Define the learning rate (alpha) and discount factor (gamma)
-ALPHA = 0.5
+ALPHA = 0.001
 GAMMA = 0.9
 EPSILON = 0.1
 ACTION_NUM = 4
@@ -232,13 +232,18 @@ class DoubleQLearningSnake(Snake):
 
 class SnakeGame:
 
+    def __init__(self,snakeAI=None):
+        if snakeAI is None:
+            self.snake = DoubleQLearningSnake(ALPHA, GAMMA)
+        else:
+            self.snake = snakeAI
     def run(self):
 
         font = pygame.font.Font('freesansbold.ttf', 32)
         # Create the game clock
         clock = pygame.time.Clock()
-        # Create the snake and food objects
-        snake = DoubleQLearningSnake(ALPHA, GAMMA)
+        # Assign the snake
+        snake = self.snake
 
         for episode in range(NUM_EPISODES):
             snake.reset_snake()

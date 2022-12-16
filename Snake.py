@@ -110,8 +110,8 @@ class Food:
 
   def place_food(self, snake):
     # Generate a random x and y position within the bounds of the game screen
-    x = random.randint(0, SCREEN_WIDTH - BLOCK_SIZE)
-    y = random.randint(0, SCREEN_HEIGHT - BLOCK_SIZE)
+    x = random.randint(BLOCK_SIZE, SCREEN_WIDTH - BLOCK_SIZE)
+    y = random.randint(BLOCK_SIZE, SCREEN_HEIGHT - BLOCK_SIZE)
 
     # Align the food position with the grid of blocks
     self.position = (round(x / BLOCK_SIZE) * BLOCK_SIZE, round(y / BLOCK_SIZE) * BLOCK_SIZE)
