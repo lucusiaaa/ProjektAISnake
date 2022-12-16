@@ -35,6 +35,9 @@ def drawGraph():
     screen.blit(surf, (0, 0))  # x, y position on screen
     matplotlib.pyplot.close(fig)
 
+if __name__ == "__main__":
+    pygame.display.set_caption("Double Q Learning AI - Snake")
+
 # Define the number of episodes to run
 NUM_EPISODES = 100000000000
 
@@ -313,4 +316,5 @@ class SnakeGame:
                 #     # pygame.display.update()
 
 snakeGame = SnakeGame()
-snakeGame.run()
+snakeGame.run()    snakeGame = SnakeGame()
+    snakeGame.run()

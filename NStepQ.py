@@ -2,7 +2,8 @@ import copy
 
 from DoubleQ import *
 
-
+if __name__ == "__main__":
+    pygame.display.set_caption("N-step Q Learning AI - Snake")
 class NStepQLearningSnake(Snake):
     def __init__(self, learning_rate, discount_factor, N=3):
         super().__init__(INITIAL_POSITION, INITIAL_VELOCITY)
@@ -13,8 +14,7 @@ class NStepQLearningSnake(Snake):
 
     def get_action(self, state: SnakeGameState):
         # Choose the best action to take in the given state according to the Q-tables
-        best_q = max(self.q_table[state.state_representation()][action] for action in ACTIONS)
-        best_q = max(best_q)
+        best_q = max([self.q_table[state.state_representation()][action] for action in ACTIONS])
         # Randomly choose one of the actions with the highest Q-value
         best_actions = [action for action in ACTIONS if
                         self.q_table[state.state_representation()][action] == best_q]
@@ -28,7 +28,7 @@ class NStepQLearningSnake(Snake):
 
     def update(self, state: SnakeGameState, action, reward, next_state):
         # Get the Q-value of the next state-action pair
-        next_q = self.q_table[next_state.state_representation()][self.get_greedy_action(next_state)]
+        next_q = self.q_table[state.state_representation()][self.get_greedy_action(state)]
 
         # Initialize the N-step return as the immediate reward
         n_step_return = reward
@@ -37,10 +37,12 @@ class NStepQLearningSnake(Snake):
         state_action_pairs = [(state, action)]
 
         # Initialize the current state and action to the next state and action
-        cur_state, cur_action = next_state, self.get_greedy_action(next_state)
+        cur_state, cur_action = state, self.get_greedy_action(state)
 
         # Iterate over the remaining N-1 steps
         for _ in range(self.n_steps - 1):
+            if cur_state.is_terminal():
+                break
             # Get the next state and action
             next_state, next_action = self.get_next_state_and_action(cur_state, cur_action)
             # Add the state-action pair to the list
@@ -51,10 +53,10 @@ class NStepQLearningSnake(Snake):
             cur_state, cur_action = next_state, next_action
 
         # Iterate over the state-action pairs in reverse order
-        for state, action in state_action_pairs[::-1]:
+        for state_f, action_f in state_action_pairs[::-1]:
             # Update the Q-value of the state-action pair
-            q_value = self.q_table[state.state_representation()][action]
-            self.q_table[state.state_representation()][action] = q_value + self.learning_rate * (
+            q_value = self.q_table[state_f.state_representation()][action_f]
+            self.q_table[state_f.state_representation()][action_f] = q_value + self.learning_rate * (
                         n_step_return - q_value)
             # Update the N-step return
             n_step_return = n_step_return - reward
@@ -64,7 +66,7 @@ class NStepQLearningSnake(Snake):
         # Create a copy of the snake
         snakeCopy = copy.copy(self)
         # Update the position and velocity of the snake copy based on the action
-        snakeCopy.change_direction(action)
+        snakeCopy.change_direction(ACTIONS.get(action))
         snakeCopy.move()
         # Create a state representing next game state
         if self.position[0] == state.food_pos[0] and self.position[1] == state.food_pos[1]:
@@ -88,6 +90,7 @@ class NStepSnakeGameState(SnakeGameState):
         self.food_pos = food_position  # position of the food
         self.obstacles = snake.body  # positions of snake's body
 
-nStepSnake = NStepQLearningSnake(ALPHA,GAMMA)
-snakeGame = SnakeGame(nStepSnake)
-snakeGame.run()
+if __name__ == "__main__":
+    nStepSnake = NStepQLearningSnake(ALPHA,GAMMA)
+    snakeGame = SnakeGame(nStepSnake)
+    snakeGame.run()
